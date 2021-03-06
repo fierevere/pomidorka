@@ -42,10 +42,18 @@ class MoCache_Translation {
 		$this->mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 		$this->domain = $domain;
 		$this->override = $override;
-                $url = site_url();
+		$temp_dir = NULL;
+ 		$siteurl = $_SERVER['HTTP_HOST'];
+		if ($siteurl) 
+		 { // use prefixed tempdir
+		   $temp_dir = sprintf('%s/wppomo-%s', get_temp_dir(), md5 ( $siteurl ));
+		 } 
+		 if ($temp_dir && wp_mkdir_p($temp_dir)) ; // use it
+		 else // fallback		
+         $temp_dir = get_temp_dir();
 
 		$filename = md5( serialize( array( $this->domain, $this->mofile ) ) );
-		$cache_file = sprintf( '%s/pomidorka-%s.mocache', untrailingslashit( sys_get_temp_dir() ), $filename );
+	    $cache_file = sprintf('%s/%s.mocache', $temp_dir, $filename);	
 
 		$mtime = filemtime( $this->mofile );
 
