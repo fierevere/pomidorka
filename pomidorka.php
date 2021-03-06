@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pomidorka 
  * Description: POMO fast translation cache
- * Plugin URI: https://github.com/fierevere/pomodoro
+ * Plugin URI: https://github.com/fierevere/pomidorka
  * Author: Yui, Pressjitsu Inc.
  * Version:     1.1
  * License:     GPLv3
@@ -30,6 +30,8 @@ class MoCache_Translation {
 	private $override = null;
 	private $upstream = null;
 	private $mofile = null;
+	private $temp_dir = null;
+	private $siteurl = null;
 
 	/**
 	 * Construct the main translation cache instance for a domain.
@@ -42,19 +44,18 @@ class MoCache_Translation {
 		$this->mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 		$this->domain = $domain;
 		$this->override = $override;
-		$temp_dir = NULL;
  		$siteurl = $_SERVER['HTTP_HOST'];
 		if ($siteurl) 
 		 { // use prefixed tempdir
-		   $temp_dir = sprintf('%s/wppomo-%s', get_temp_dir(), md5 ( $siteurl ));
+		   $temp_dir = sprintf('%s/pomo-%s', untrailingslashit(get_temp_dir()), md5 ( $siteurl ));
 		 } 
-		 if ($temp_dir && wp_mkdir_p($temp_dir)) ; // use it
-		 else // fallback		
-         $temp_dir = get_temp_dir();
-
-		$filename = md5( serialize( array( $this->domain, $this->mofile ) ) );
-	    $cache_file = sprintf('%s/%s.mocache', $temp_dir, $filename);	
-
+		 if (!($temp_dir && wp_mkdir_p($temp_dir)))
+         {
+          $temp_dir = untrailingslashit (get_temp_dir());
+         }
+		
+        $filename = md5( serialize( array( $this->domain, $this->mofile ) ) );
+	    $cache_file = sprintf('%s/%s.mc', $temp_dir, $filename);
 		$mtime = filemtime( $this->mofile );
 
 		if ( file_exists( $cache_file ) ) {
